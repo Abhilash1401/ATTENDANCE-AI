@@ -59,11 +59,22 @@ def save_attendance(
 
 
 def clear_database():
+    confirmation = input(
+        "WARNING: This will delete ALL attendance history. "
+        "Type DELETE to confirm: "
+    )
+
+    if confirmation != "DELETE":
+        print("[!] Database deletion cancelled.")
+        return
+
     connection = sqlite3.connect(DATABASE)
     cursor = connection.cursor()
     cursor.execute("DELETE FROM attendance_history")
     connection.commit()
     connection.close()
+
+    print("[OK] Attendance history deleted.")
 
 
 def get_history(roll_no):
