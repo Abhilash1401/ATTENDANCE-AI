@@ -1,4 +1,5 @@
 ﻿import requests #type: ignore
+from colorama import Fore, Style, init
 from calculator import safe_bunk, classes_to_reach_75, attendance_planner
 from nrcm_portal import login, get_attendance
 from history import create_database, save_attendance, get_history, clear_database
@@ -6,41 +7,48 @@ from attendance_parser import parse_attendance
 from student_parser import parse_student
 from config import INDEX_URL, CLASSES_PER_DAY, TARGET_PERCENTAGE
 
+init(autoreset=True)
+
+
 def print_header():
-    print("===============================================")
-    print("          ATTENDANCE AI (Portal Edition)")
-    print("===============================================")
+    print(Fore.CYAN + "===============================================")
+    print(Fore.CYAN + "          ATTENDANCE AI (Portal Edition)")
+    print(Fore.CYAN + "===============================================")
+
 
 def print_student_details(student):
-    print("\n========================================")
-    print("             STUDENT DETAILS")
-    print("========================================")
-    print(f"Name        : {student['name']}")
-    print(f"Roll No     : {student['roll_no']}")
-    print(f"Department  : {student['department']}")
-    print(f"Year        : {student['year']}")
+    print(Fore.CYAN + "\n========================================")
+    print(Fore.CYAN + "             STUDENT DETAILS")
+    print(Fore.CYAN + "========================================")
+    print(f"{Fore.YELLOW}Name        : {Fore.WHITE}{student['name']}")
+    print(f"{Fore.YELLOW}Roll No     : {Fore.WHITE}{student['roll_no']}")
+    print(f"{Fore.YELLOW}Department  : {Fore.WHITE}{student['department']}")
+    print(f"{Fore.YELLOW}Year        : {Fore.WHITE}{student['year']}")
+
 
 def print_attendance_summary(attendance):
-    print("\n========================================")
-    print("          SEMESTER ATTENDANCE")
-    print("========================================")
-    print(f"Present     : {attendance['present']}")
-    print(f"Total       : {attendance['total']}")
-    print(f"Percentage  : {attendance['percentage']:.2f}%")
+    print(Fore.CYAN + "\n========================================")
+    print(Fore.CYAN + "          SEMESTER ATTENDANCE")
+    print(Fore.CYAN + "========================================")
+    print(f"{Fore.YELLOW}Present     : {Fore.WHITE}{attendance['present']}")
+    print(f"{Fore.YELLOW}Total       : {Fore.WHITE}{attendance['total']}")
+    print(f"{Fore.YELLOW}Percentage  : {Fore.GREEN}{attendance['percentage']:.2f}%")
+
 
 def print_menu():
-    print("\n===============================")
-    print("1. Safe Bunk")
-    print("2. Attend Class for 75%")
-    print("3. Tomorrow's Attendance Planner")
-    print("4. Refresh Attendance")
-    print("5. Attendance History")
-    print("6. Clear Database")
-    print("7. Exit")
-    print("===============================")
+    print(Fore.CYAN + "\n===============================")
+    print(Fore.WHITE + "1. Safe Bunk")
+    print(Fore.WHITE + "2. Attend Class for 75%")
+    print(Fore.WHITE + "3. Tomorrow's Attendance Planner")
+    print(Fore.WHITE + "4. Refresh Attendance")
+    print(Fore.WHITE + "5. Attendance History")
+    print(Fore.YELLOW + "6. Clear Database")
+    print(Fore.RED + "7. Exit")
+    print(Fore.CYAN + "===============================")
+
 
 def refresh_attendance(session):
-    print("\n[+] Refreshing attendance...")
+    print(Fore.BLUE + "\n[+] Refreshing attendance...")
 
     try:
         index_response = session.get(
@@ -61,78 +69,77 @@ def refresh_attendance(session):
             attendance_response.text
         )
 
-        print("[OK] Attendance refreshed.")
+        print(Fore.GREEN + "[OK] Attendance refreshed.")
 
         return student, attendance
 
     except requests.RequestException as error:
-        print(f"[!] Refresh failed: {error}")
+        print(Fore.RED + f"[!] Refresh failed: {error}")
         return None, None
 
 
 def show_history(roll_no):
     records = get_history(roll_no)
 
-    print("\n========================================")
-    print("          ATTENDANCE HISTORY")
-    print("========================================")
+    print(Fore.CYAN + "\n========================================")
+    print(Fore.CYAN + "          ATTENDANCE HISTORY")
+    print(Fore.CYAN + "========================================")
 
     if not records:
-        print("No attendance history found.")
+        print(Fore.YELLOW + "No attendance history found.")
         return
 
     print(
-        f"{'Date':<24}"
+        f"{Fore.YELLOW}{'Date':<24}"
         f"{'Present':<10}"
         f"{'Total':<8}"
         f"{'Percentage':<12}"
     )
 
-    print("--------------------------------------------")
+    print(Fore.CYAN + "--------------------------------------------")
 
     for present, total, percentage, checked_at in records:
         print(
-            f"{checked_at:<24}"
+            f"{Fore.WHITE}{checked_at:<24}"
             f"{present:<10}"
             f"{total:<8}"
-            f"{percentage:.2f}%"
+            f"{Fore.GREEN}{percentage:.2f}%"
         )
 
-    print("----------------------------------------")
+    print(Fore.CYAN + "----------------------------------------")
+
 
 def handle_option(option, present, total, percentage, session=None):
     if option == "1":
         if percentage > TARGET_PERCENTAGE:
             bunkable = safe_bunk(present, total)
-            print(f"You can safely bunk {bunkable} class{'es' if bunkable != 1 else ''}.")
-            print(f"You can safely bunk {bunkable // CLASSES_PER_DAY} day{'s' if bunkable // CLASSES_PER_DAY != 1 else ''}.")
+            print(Fore.GREEN + f"You can safely bunk {bunkable} class{'es' if bunkable != 1 else ''}.")
+            print(Fore.GREEN + f"You can safely bunk {bunkable // CLASSES_PER_DAY} day{'s' if bunkable // CLASSES_PER_DAY != 1 else ''}.")
         else:
-            print("Your attendance is already at or below 75%.")
-            print("You cannot safely bunk any more classes.")
+            print(Fore.YELLOW + "Your attendance is already at or below 75%.")
+            print(Fore.RED + "You cannot safely bunk any more classes.")
 
         return session
 
     elif option == "2":
         if percentage < TARGET_PERCENTAGE:
             needed = classes_to_reach_75(present, total)
-            print(f"You need to attend {needed} more consecutive classes to reach 75% attendance.")
-            print(f"You need to attend {int((needed + CLASSES_PER_DAY - 1) / CLASSES_PER_DAY)} more consecutive days to reach 75% attendance.")
+            print(Fore.YELLOW + f"You need to attend {needed} more consecutive classes to reach 75% attendance.")
+            print(Fore.YELLOW + f"You need to attend {int((needed + CLASSES_PER_DAY - 1) / CLASSES_PER_DAY)} more consecutive days to reach 75% attendance.")
         else:
-            print("Your attendance is already at or above 75%.")
+            print(Fore.GREEN + "Your attendance is already at or above 75%.")
 
         return session
 
     elif option == "3":
-        print("\n========================================")
-        print("        ATTENDANCE PLANNER")
-        print("========================================")
+        print(Fore.CYAN + "\n========================================")
+        print(Fore.CYAN + "        ATTENDANCE PLANNER")
+        print(Fore.CYAN + "========================================")
 
-        print(
-            f"Tomorrow has {CLASSES_PER_DAY} classes."
-        )
+        print(Fore.WHITE + f"Tomorrow has {CLASSES_PER_DAY} classes.")
 
-        print("\nClasses     Attendance     Change     Status")
-        print("--------------------------------------------")
+        print(Fore.YELLOW + "\nClasses     Attendance     Change     Status")
+        print(Fore.CYAN + "--------------------------------------------")
 
         results = attendance_planner(
             present,
@@ -145,18 +152,18 @@ def handle_option(option, present, total, percentage, session=None):
             change = result["change"]
 
             if result["safe"]:
-                status = "SAFE"
+                status = Fore.GREEN + "SAFE"
             else:
-                status = "BELOW 75%"
+                status = Fore.RED + "BELOW 75%"
 
             print(
-                f"{attended}/6"
+                f"{Fore.WHITE}{attended}/6"
                 f"{percentage:>16.2f}%"
                 f"{change:>11.2f}%"
                 f"     {status}"
             )
 
-        print("--------------------------------------------")
+        print(Fore.CYAN + "--------------------------------------------")
 
         return session
 
@@ -173,8 +180,9 @@ def handle_option(option, present, total, percentage, session=None):
         return "exit"
 
     else:
-        print("Invalid option. Please choose 1-7.")
+        print(Fore.RED + "Invalid option. Please choose 1-7.")
         return None
+
 
 def main():
     print_header()
@@ -184,23 +192,23 @@ def main():
     roll_no = input("Roll Number: ")
     password = input("Password: ")
 
-    print("\n[+] Connecting to NRCM portal...")
+    print(Fore.BLUE + "\n[+] Connecting to NRCM portal...")
     try:
         session, login_response = login(roll_no, password)
-        print(f"[+] Login status: {login_response.status_code}")
+        print(Fore.WHITE + f"[+] Login status: {login_response.status_code}")
 
         if "index.php" not in login_response.url:
-            print("[!] Login failed.")
+            print(Fore.RED + "[!] Login failed.")
             return
 
-        print("[OK] Login successful!")
+        print(Fore.GREEN + "[OK] Login successful!")
 
-        print("\n[+] Fetching student details...")
+        print(Fore.BLUE + "\n[+] Fetching student details...")
         index_response = session.get(INDEX_URL, timeout=15)
         index_response.raise_for_status()
-        print("[OK] Student details page received.")
+        print(Fore.GREEN + "[OK] Student details page received.")
 
-        print("\n[+] Fetching attendance...")
+        print(Fore.BLUE + "\n[+] Fetching attendance...")
         attendance_response = get_attendance(session)
 
         student = parse_student(index_response.text)
@@ -213,9 +221,9 @@ def main():
         attendance["percentage"]
         )
 
-        print("[OK] Attendance saved to history.")
-        print(f"[+] Attendance status: {attendance_response.status_code}")
-        print("[OK] Attendance page received.")
+        print(Fore.GREEN + "[OK] Attendance saved to history.")
+        print(Fore.WHITE + f"[+] Attendance status: {attendance_response.status_code}")
+        print(Fore.GREEN + "[OK] Attendance page received.")
 
         print_student_details(student)
         print_attendance_summary(attendance)
@@ -239,7 +247,7 @@ def main():
                         attendance["percentage"]
                     )
 
-                    print("[OK] New attendance snapshot saved.")
+                    print(Fore.GREEN + "[OK] New attendance snapshot saved.")
 
                     print_student_details(student)
                     print_attendance_summary(attendance)
@@ -251,28 +259,29 @@ def main():
 
             elif result == "clear_database":
                 clear_database()
-                print("\n[OK] Attendance history database cleared.")
+                print(Fore.GREEN + "\n[OK] Attendance history database cleared.")
 
             elif result == "exit":
-                print("\n[+] Clearing session...")
+                print(Fore.BLUE + "\n[+] Clearing session...")
                 if session is not None:
                     session.close()
                     session = None
-                print("[OK] Session cleared.")
-                print("Thank you for using Attendance AI!")
-                print("Exiting...")
+                print(Fore.GREEN + "[OK] Session cleared.")
+                print(Fore.GREEN + "Thank you for using Attendance AI!")
+                print(Fore.BLUE + "Exiting...")
                 break
 
     except requests.RequestException as error:
-        print(f"\n[!] Network error: {error}")
+        print(Fore.RED + f"\n[!] Network error: {error}")
     except ValueError as error:
-        print(f"\n[!] Parser error: {error}")
+        print(Fore.RED + f"\n[!] Parser error: {error}")
     except Exception as error:
-        print(f"\n[!] Error: {error}")
+        print(Fore.RED + f"\n[!] Error: {error}")
     finally:
         if session is not None:
             session.close()
             session = None
+
 
 if __name__ == "__main__":
     main()
