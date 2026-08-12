@@ -1,5 +1,5 @@
 ﻿import requests #type: ignore
-from colorama import Fore, Style, init
+from colorama import Fore, init
 from calculator import safe_bunk, classes_to_reach_75, attendance_planner
 from nrcm_portal import login, get_attendance
 from history import create_database, save_attendance, get_history, clear_database
@@ -47,35 +47,59 @@ def print_menu():
     print(Fore.CYAN + "===============================")
 
 
-def refresh_attendance(session):
+def refresh_attendance(session, roll_no, password):
     print(Fore.BLUE + "\n[+] Refreshing attendance...")
 
     try:
-        index_response = session.get(
-            INDEX_URL,
-            timeout=15
-        )
+        index_response = session.get(INDEX_URL, timeout=15)
         index_response.raise_for_status()
 
-        attendance_response = get_attendance(
-            session
-        )
+        attendance_response = get_attendance(session)
 
-        student = parse_student(
-            index_response.text
-        )
+        # NRCM can redirect an expired session back to the login page.
+        # Re-authenticate once and retry the attendance request.
+        if "login.php" in attendance_response.url.lower():
+            print(Fore.YELLOW + "[!] Session expired. Re-authenticating...")
+            session.close()
+            session, login_response = login(roll_no, password)
 
-        attendance = parse_attendance(
-            attendance_response.text
-        )
+            if "index.php" not in login_response.url:
+                print(Fore.RED + "[!] Re-authentication failed.")
+                session.close()
+                return None, None, None
+
+            index_response = session.get(INDEX_URL, timeout=15)
+            index_response.raise_for_status()
+            attendance_response = get_attendance(session)
+
+        student = parse_student(index_response.text)
+
+        try:
+            attendance = parse_attendance(attendance_response.text)
+        except ValueError:
+            # If the session response is not the attendance page, refresh
+            # the authenticated session once before reporting a parser error.
+            print(Fore.YELLOW + "[!] Attendance response was not valid. Re-authenticating...")
+            session.close()
+            session, login_response = login(roll_no, password)
+
+            if "index.php" not in login_response.url:
+                print(Fore.RED + "[!] Re-authentication failed.")
+                session.close()
+                return None, None, None
+
+            index_response = session.get(INDEX_URL, timeout=15)
+            index_response.raise_for_status()
+            attendance_response = get_attendance(session)
+            student = parse_student(index_response.text)
+            attendance = parse_attendance(attendance_response.text)
 
         print(Fore.GREEN + "[OK] Attendance refreshed.")
-
-        return student, attendance
+        return student, attendance, session
 
     except requests.RequestException as error:
         print(Fore.RED + f"[!] Refresh failed: {error}")
-        return None, None
+        return None, None, None
 
 
 def show_history(roll_no):
@@ -118,7 +142,6 @@ def handle_option(option, present, total, percentage, session=None):
         else:
             print(Fore.YELLOW + "Your attendance is already at or below 75%.")
             print(Fore.RED + "You cannot safely bunk any more classes.")
-
         return session
 
     elif option == "2":
@@ -128,34 +151,22 @@ def handle_option(option, present, total, percentage, session=None):
             print(Fore.YELLOW + f"You need to attend {int((needed + CLASSES_PER_DAY - 1) / CLASSES_PER_DAY)} more consecutive days to reach 75% attendance.")
         else:
             print(Fore.GREEN + "Your attendance is already at or above 75%.")
-
         return session
 
     elif option == "3":
         print(Fore.CYAN + "\n========================================")
         print(Fore.CYAN + "        ATTENDANCE PLANNER")
         print(Fore.CYAN + "========================================")
-
         print(Fore.WHITE + f"Tomorrow has {CLASSES_PER_DAY} classes.")
-
         print(Fore.YELLOW + "\nClasses     Attendance     Change     Status")
         print(Fore.CYAN + "--------------------------------------------")
 
-        results = attendance_planner(
-            present,
-            total
-        )
-
+        results = attendance_planner(present, total)
         for result in reversed(results):
             attended = result["attended"]
             percentage = result["percentage"]
             change = result["change"]
-
-            if result["safe"]:
-                status = Fore.GREEN + "SAFE"
-            else:
-                status = Fore.RED + "BELOW 75%"
-
+            status = Fore.GREEN + "SAFE" if result["safe"] else Fore.RED + "BELOW 75%"
             print(
                 f"{Fore.WHITE}{attended}/6"
                 f"{percentage:>16.2f}%"
@@ -164,21 +175,16 @@ def handle_option(option, present, total, percentage, session=None):
             )
 
         print(Fore.CYAN + "--------------------------------------------")
-
         return session
 
     elif option == "4":
         return "refresh"
-
     elif option == "5":
         return "history"
-
     elif option == "6":
         return "clear_database"
-
     elif option == "7":
         return "exit"
-
     else:
         print(Fore.RED + "Invalid option. Please choose 1-7.")
         return None
@@ -186,13 +192,14 @@ def handle_option(option, present, total, percentage, session=None):
 
 def main():
     print_header()
-
     create_database()
 
     roll_no = input("Roll Number: ")
     password = input("Password: ")
 
     print(Fore.BLUE + "\n[+] Connecting to NRCM portal...")
+    session = None
+
     try:
         session, login_response = login(roll_no, password)
         print(Fore.WHITE + f"[+] Login status: {login_response.status_code}")
@@ -210,15 +217,12 @@ def main():
 
         print(Fore.BLUE + "\n[+] Fetching attendance...")
         attendance_response = get_attendance(session)
-
         student = parse_student(index_response.text)
         attendance = parse_attendance(attendance_response.text)
+
         save_attendance(
-        student["roll_no"],
-        student["name"],
-        attendance["present"],
-        attendance["total"],
-        attendance["percentage"]
+            student["roll_no"], student["name"], attendance["present"],
+            attendance["total"], attendance["percentage"]
         )
 
         print(Fore.GREEN + "[OK] Attendance saved to history.")
@@ -231,35 +235,39 @@ def main():
         while True:
             print_menu()
             option = input("Enter your choice: ").strip()
-            result = handle_option(option, attendance['present'], attendance['total'], attendance['percentage'], session)
+            result = handle_option(
+                option, attendance['present'], attendance['total'],
+                attendance['percentage'], session
+            )
 
             if result == "refresh":
-                student_data, attendance_data = refresh_attendance(session)
+                student_data, attendance_data, new_session = refresh_attendance(
+                    session, roll_no, password
+                )
+
                 if student_data is not None:
+                    if new_session is not session:
+                        if session is not None:
+                            session.close()
+                        session = new_session
+
                     student = student_data
                     attendance = attendance_data
 
                     save_attendance(
-                        student["roll_no"],
-                        student["name"],
-                        attendance["present"],
-                        attendance["total"],
-                        attendance["percentage"]
+                        student["roll_no"], student["name"], attendance["present"],
+                        attendance["total"], attendance["percentage"]
                     )
 
                     print(Fore.GREEN + "[OK] New attendance snapshot saved.")
-
                     print_student_details(student)
                     print_attendance_summary(attendance)
 
             elif result == "history":
-                show_history(
-                    student["roll_no"]
-                )
+                show_history(student["roll_no"])
 
             elif result == "clear_database":
                 clear_database()
-                print(Fore.GREEN + "\n[OK] Attendance history database cleared.")
 
             elif result == "exit":
                 print(Fore.BLUE + "\n[+] Clearing session...")
