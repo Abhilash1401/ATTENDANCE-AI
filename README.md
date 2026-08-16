@@ -1,135 +1,258 @@
-# Attendance AI V2 — NRCM Portal Edition
+# Attendance AI — NRCM Portal Edition
 
-Attendance AI V2 is a Python-based terminal utility designed specifically for the **NRCM student portal**. It logs in using a student's roll number and password, retrieves student and semester attendance details, and provides attendance planning and management features.
+Attendance AI is a Python-based terminal application for retrieving and analyzing attendance from the **NRCM student portal**. It logs in with a student's roll number and password, fetches student and attendance information, and provides tools for attendance planning.
 
-> **NRCM Specific:** This version is currently built for the NRCM student portal and is not a universal attendance system for other colleges.
+> **Current scope:** This version is built specifically for the NRCM student portal. It is not a universal attendance system for other colleges.
 
 ## Features
 
-- Logs in to the NRCM student portal using roll number and password
-- Fetches student details from the NRCM dashboard
-- Fetches semester attendance automatically
-- Displays parsed student information
-- Calculates current attendance percentage
-- Computes safe bunk classes while maintaining 75% attendance
-- Estimates classes needed to reach 75%
-- Attendance planner for tomorrow's possible attendance scenarios
-- Refreshes attendance without restarting the application
-- Stores local attendance history using SQLite
+- NRCM student portal login
+- Student detail retrieval
+- Semester attendance retrieval and parsing
+- Current attendance percentage calculation
+- Safe-bunk calculation for maintaining 75% attendance
+- Classes required to reach 75%
+- Tomorrow's attendance planner
+- Attendance refresh without restarting
+- Local attendance history using SQLite
 - Terminal-based interface
-- Does not store the portal password
+- Portal password is not stored by the application
 
 ## Requirements
 
-- Python 3.10+
-- Git
+- **Python 3.10 or newer**
+- **Git**
 - Internet connection
 - Valid NRCM student portal account
-- `requests`
-- `beautifulsoup4`
+- Python packages listed in `requirements.txt`
 
 ## Installation
 
-### Windows
+The repository now contains the application files directly in the root directory. There is **no `V2` or `ATTADENCE_AI-V2.0` folder** to enter.
+
+### 1. Clone the repository
+
+On Windows, Linux, macOS, or any other system with Git:
+
+```bash
+git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
+cd ATTENDANCE-AI
+```
+
+### 2. Check Python
 
 ```bash
 python --version
-git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
-cd Attendance-AI/V2
-pip install -r requirements.txt
-python main.py
 ```
 
-If `python` does not work:
+If `python` is not available, try:
 
 ```bash
-py main.py
+python3 --version
 ```
 
-### Linux
+The project requires **Python 3.10+**.
+
+### 3. Install dependencies
+
+Using `python`:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Using `python3`:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+### Windows
+
+If `python` is not recognized, install Python from the official Python website and enable **Add Python to PATH** during installation. Then reopen the terminal and run:
+
+```powershell
+python --version
+python -m pip install -r requirements.txt
+```
+
+### Linux / Kali Linux / Ubuntu / Debian
+
+If Python, pip, or Git is not installed:
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip git
-python3 --version
-git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
-cd Attendance-AI/V2
-pip3 install -r requirements.txt
-python3 main.py
+sudo apt install python3 python3-pip python3-venv git
 ```
 
-#### Linux Virtual Environment
+Then:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 main.py
+python3 -m pip install -r requirements.txt
 ```
 
-### Termux
+If your distribution prevents system-wide pip installation, use a virtual environment:
 
 ```bash
-pkg update && pkg upgrade
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+### macOS
+
+If Python 3 is installed:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+If Git or Python is missing, install them using your preferred package manager or their official installers.
+
+### Android / Termux
+
+Install Termux from a trusted source, then run:
+
+```bash
+pkg update
 pkg install python git
-python --version
+
 git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
-cd Attendance-AI/V2
-pip install -r requirements.txt
-python main.py
+cd ATTENDANCE-AI
+python -m pip install -r requirements.txt
 ```
 
-### Manual Installation
+## Run the application
 
-If you already downloaded the V2 source code:
-
-```bash
-cd Attendance-AI/V2
-pip install -r requirements.txt
-python main.py
-```
-
-## Usage
-
-Run the application:
+From the repository root:
 
 ```bash
 python main.py
 ```
 
-Then enter your NRCM roll number and password.
+On systems where Python 3 is invoked as `python3`:
 
-The application retrieves your student details and attendance automatically.
+```bash
+python3 main.py
+```
+
+The application will ask for:
+
+```text
+Roll Number: <your roll number>
+Password: <your portal password>
+```
+
+The credentials are used at runtime to authenticate with the NRCM portal.
 
 ## Menu
 
 ```text
 1. Safe Bunk
 2. Attend Class for 75%
-3. Attendance Planner
+3. Tomorrow's Attendance Planner
 4. Refresh Attendance
 5. Attendance History
-6. Exit
+6. Clear Database
+7. Exit
 ```
 
-## Project Files
+## Project Structure
 
-- `main.py` — portal login, student and attendance retrieval, and menu-driven user interface
-- `nrcm_portal.py` — NRCM portal session handling and page fetch logic
-- `student_parser.py` — student detail parsing from `index.php`
-- `attendance_parser.py` — attendance summary parsing from `Date_wise_attendance`
-- `calculator.py` — attendance calculation helpers
-- `history.py` — local SQLite attendance history
-- `config.py` — portal URLs and attendance constants
-- `requirements.txt` — Python dependencies
+```text
+ATTENDANCE-AI/
+├── main.py
+├── nrcm_portal.py
+├── student_parser.py
+├── attendance_parser.py
+├── calculator.py
+├── history.py
+├── config.py
+├── requirements.txt
+└── README.md
+```
+
+### File descriptions
+
+| File | Purpose |
+|---|---|
+| `main.py` | Main application, login flow, menu, attendance operations |
+| `nrcm_portal.py` | NRCM portal session and attendance requests |
+| `student_parser.py` | Parses student information from the portal |
+| `attendance_parser.py` | Parses attendance information from the portal |
+| `calculator.py` | Attendance calculations and planning logic |
+| `history.py` | SQLite attendance-history storage |
+| `config.py` | Portal URLs and attendance constants |
+| `requirements.txt` | Python dependencies |
+
+## Database
+
+The application creates a local SQLite database named:
+
+```text
+attendance_history.db
+```
+
+It stores attendance snapshots locally so that attendance history can be viewed later.
+
+The database is created automatically when the application starts. You do **not** need to create it manually.
 
 ## Privacy
 
 - The portal password is entered at runtime.
-- The application does not store the portal password.
-- Local attendance history is stored in `attendance_history.db`.
-- Do not upload `attendance_history.db` or credentials to GitHub.
+- The application does not intentionally save the portal password.
+- Attendance history is stored locally in `attendance_history.db`.
+- **Do not upload `attendance_history.db`, passwords, session cookies, or other credentials to GitHub.**
+
+## Troubleshooting
+
+### `python` is not recognized
+
+Try:
+
+```bash
+python3 --version
+```
+
+On Windows, make sure Python was installed with **Add Python to PATH** enabled.
+
+### `pip` is not recognized
+
+Do not rely on the `pip` command directly. Use:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+or:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+### `No module named ...`
+
+Install the project dependencies again:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### Network or login errors
+
+Make sure:
+
+- You have an active internet connection.
+- The NRCM portal is reachable.
+- Your roll number and password are correct.
+- The portal has not changed its login or attendance-page structure.
 
 ## Version
 
 **Attendance AI V2.0 — NRCM Portal Edition**
+
+## Author
+
+**Abhilash Reddy**
+
+GitHub: `Abhilash1401`
