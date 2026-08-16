@@ -28,115 +28,83 @@ Attendance AI is a Python-based terminal application for retrieving and analyzin
 
 ## Installation
 
-The repository now contains the application files directly in the root directory. There is **no `V2` or `ATTADENCE_AI-V2.0` folder** to enter.
+The application files are directly in the repository root. There is **no V2 folder** to enter.
 
-### 1. Clone the repository
-
-On Windows, Linux, macOS, or any other system with Git:
-
-```bash
-git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
-cd ATTENDANCE-AI
-```
-
-### 2. Check Python
-
-```bash
-python --version
-```
-
-If `python` is not available, try:
-
-```bash
-python3 --version
-```
-
-The project requires **Python 3.10+**.
-
-### 3. Install dependencies
-
-Using `python`:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Using `python3`:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-### Windows
-
-If `python` is not recognized, install Python from the official Python website and enable **Add Python to PATH** during installation. Then reopen the terminal and run:
+### Windows — Copy and paste
 
 ```powershell
-python --version
-python -m pip install -r requirements.txt
-```
-
-### Linux / Kali Linux / Ubuntu / Debian
-
-If Python, pip, or Git is not installed:
-
-```bash
-sudo apt update
-sudo apt install python3 python3-pip python3-venv git
-```
-
-Then:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-If your distribution prevents system-wide pip installation, use a virtual environment:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-### macOS
-
-If Python 3 is installed:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-If Git or Python is missing, install them using your preferred package manager or their official installers.
-
-### Android / Termux
-
-Install Termux from a trusted source, then run:
-
-```bash
-pkg update
-pkg install python git
-
 git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
 cd ATTENDANCE-AI
+python --version
 python -m pip install -r requirements.txt
-```
-
-## Run the application
-
-From the repository root:
-
-```bash
 python main.py
 ```
 
-On systems where Python 3 is invoked as `python3`:
+If `python` is not recognized, use the Python launcher:
+
+```powershell
+git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
+cd ATTENDANCE-AI
+py --version
+py -m pip install -r requirements.txt
+py main.py
+```
+
+### Linux / Kali Linux / Ubuntu / Debian — Copy and paste
 
 ```bash
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv git
+git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
+cd ATTENDANCE-AI
+python3 --version
+python3 -m pip install -r requirements.txt
 python3 main.py
 ```
 
-The application will ask for:
+If your Linux distribution blocks system-wide pip installation, use this virtual-environment version:
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv git
+git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
+cd ATTENDANCE-AI
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python main.py
+```
+
+### Android / Termux — Copy and paste
+
+```bash
+pkg update -y
+pkg upgrade -y
+pkg install -y python git
+git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
+cd ATTENDANCE-AI
+python --version
+python -m pip install -r requirements.txt
+python main.py
+```
+
+### macOS — Copy and paste
+
+If Python 3 and Git are already installed:
+
+```bash
+git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
+cd ATTENDANCE-AI
+python3 --version
+python3 -m pip install -r requirements.txt
+python3 main.py
+```
+
+If Python or Git is missing, install them first and then run the block above.
+
+## Usage
+
+After starting the application, enter your NRCM portal credentials when prompted:
 
 ```text
 Roll Number: <your roll number>
@@ -193,8 +161,6 @@ The application creates a local SQLite database named:
 attendance_history.db
 ```
 
-It stores attendance snapshots locally so that attendance history can be viewed later.
-
 The database is created automatically when the application starts. You do **not** need to create it manually.
 
 ## Privacy
@@ -208,17 +174,21 @@ The database is created automatically when the application starts. You do **not*
 
 ### `python` is not recognized
 
-Try:
+On Linux, macOS, or Termux, try:
 
 ```bash
 python3 --version
 ```
 
-On Windows, make sure Python was installed with **Add Python to PATH** enabled.
+On Windows, try:
+
+```powershell
+py --version
+```
 
 ### `pip` is not recognized
 
-Do not rely on the `pip` command directly. Use:
+Use Python's module form instead of calling `pip` directly:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -232,7 +202,7 @@ python3 -m pip install -r requirements.txt
 
 ### `No module named ...`
 
-Install the project dependencies again:
+Run the dependency installation again from the repository root:
 
 ```bash
 python -m pip install -r requirements.txt
