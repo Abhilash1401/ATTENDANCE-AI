@@ -30,7 +30,7 @@ Attendance AI is a Python-based terminal application for retrieving and analyzin
 
 The application files are directly in the repository root. There is **no V2 folder** to enter.
 
-### Windows — Copy and paste
+### Windows
 
 ```powershell
 git clone https://github.com/Abhilash1401/ATTENDANCE-AI.git
@@ -50,7 +50,7 @@ py -m pip install -r requirements.txt
 py main.py
 ```
 
-### Linux / Kali Linux / Ubuntu / Debian — Copy and paste
+### Linux / Kali Linux / Ubuntu / Debian
 
 ```bash
 sudo apt update
@@ -75,7 +75,7 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
-### Android / Termux — Copy and paste
+### Android / Termux
 
 ```bash
 pkg update -y
@@ -88,7 +88,7 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
-### macOS — Copy and paste
+### macOS
 
 If Python 3 and Git are already installed:
 
